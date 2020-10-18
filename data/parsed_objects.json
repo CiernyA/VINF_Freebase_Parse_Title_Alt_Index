@@ -1,0 +1,8 @@
+{
+"footballdb_id": {"type": "property", "name": "footballdb ID"},
+"discoveries": {"name": "Discoveries", "type": "property"},
+"fuel_tank_capacity": {"name": "Fuel Tank Capacity", "type": "property"},
+"engine_type": {"name": "Engine Type", "type": "property"},
+"max_passengers": {"type": "property", "name": "Maximum Number of Passengers"},
+"end":{ }
+}
