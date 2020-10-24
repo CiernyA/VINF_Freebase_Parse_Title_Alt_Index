@@ -1,4 +1,6 @@
 import re
+import json
+from elasticsearch import Elasticsearch
 
 DATA_DIR_NAME = "data/"
 DATA_FILE_NAME = "big_data.txt"
@@ -9,8 +11,20 @@ OUTPUT_FILE_NAME = "parsed_objects.json"
 json_file = open("{}{}".format(DATA_DIR_NAME, OUTPUT_FILE_NAME),"w", encoding="utf-8", errors="replace")
 json_file.write("{\n")
 
+indexer = Elasticsearch()
+
 def print_object_to_file(object, title):
-    print("\"{}\": {},".format(title,object[title]).replace('\'','\"'),file=json_file)
+    print("\"{}\": {},".format(title,json.dumps(object[title], sort_keys=True)),file=json_file)
+#object[title]).replace('\'','\"')
+
+def parse_object_triplet(part):
+#    if('#' in part):
+#        return part.split('#')[1].replace('>','')
+    if('"' in part):
+        return part.split('"')[1]
+    else:
+        temp = part.split('.')
+        return temp[len(temp)-1].replace('>','')
 
 with open("{}{}".format(DATA_DIR_NAME,DATA_FILE_NAME),encoding="utf-8") as file:
     parsed_object = {}
@@ -25,30 +39,29 @@ with open("{}{}".format(DATA_DIR_NAME,DATA_FILE_NAME),encoding="utf-8") as file:
                 parsed_title = line_title
                 parsed_object[line_title]={}
             elif line_title != parsed_title:
-                #print(parsed_object)
                 print_object_to_file(parsed_object, parsed_title)
                 parsed_object={}
                 parsed_title = line_title
                 parsed_object[line_title]={}
                 #also index objects
             attribute=""
-#            if("#" in triplet[1]):
-#                attribute = triplet[1].split('#')[1].replace('>','')
-#            else:
+
             temp = triplet[1].split('.')
             attribute = temp[len(temp)-1].replace('>','')
-            object=""
-#            if('#' in triplet[2]):
-#                object=triplet[2].split('#')[1].replace('>','')
-            if('"' in triplet[2]):
-                object = triplet[2].split('"')[1]
+            if("@" in triplet[2]):
+                if not re.search("@en",triplet[2]):
+                    continue
+
+            object = parse_object_triplet(triplet[2])
+            if(re.search("(name|display_name)",attribute)):
+                attribute = "name" if attribute == "display_name" else attribute
+                if(attribute not in parsed_object[parsed_title]):
+                    parsed_object[parsed_title][attribute] = []
+                if(object not in parsed_object[parsed_title][attribute]):
+                    parsed_object[parsed_title][attribute].append(object)
             else:
-                temp = triplet[2].split('.')
-                object = temp[len(temp)-1].replace('>','')
-            parsed_object[parsed_title][attribute] = object
-    print(parsed_object)
+                	parsed_object[parsed_title][attribute] = object
     parsed_object={}
 
-json_file.write("\"end\":{ }\n}")
+json_file.write("\n}")
 json_file.close()
-#Need to refine the parsing of attributes - if name/label/we, put it into alt_title arr probably
