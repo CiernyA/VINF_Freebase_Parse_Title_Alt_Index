@@ -12,6 +12,7 @@ json_file = open("{}{}".format(DATA_DIR_NAME, OUTPUT_FILE_NAME),"w", encoding="u
 json_file.write("{\n")
 
 indexer = Elasticsearch()
+index_id = 0
 
 def print_object_to_file(object, title):
     print("\"{}\": {},".format(title,json.dumps(object[title], sort_keys=True)),file=json_file)
@@ -40,6 +41,8 @@ with open("{}{}".format(DATA_DIR_NAME,DATA_FILE_NAME),encoding="utf-8") as file:
                 parsed_object[line_title]={}
             elif line_title != parsed_title:
                 print_object_to_file(parsed_object, parsed_title)
+                indexer.index(index = parsed_object[parsed_title]["type"], id=index_id, body = parsed_object) 
+
                 parsed_object={}
                 parsed_title = line_title
                 parsed_object[line_title]={}
