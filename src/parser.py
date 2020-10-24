@@ -1,17 +1,18 @@
 import re
 
 DATA_DIR_NAME = "data/"
-DATA_FILE_NAME = "smaller_data.txt"
+DATA_FILE_NAME = "big_data.txt"
 NEEDED_ATRIBUTES = "(type\.object\.name|\.display_name|type\.object\.type)" #\#label|\#type
+ENGLISH_NAME = ""
 OUTPUT_FILE_NAME = "parsed_objects.json"
 
-json_file = open("{}{}".format(DATA_DIR_NAME, OUTPUT_FILE_NAME),"w")
+json_file = open("{}{}".format(DATA_DIR_NAME, OUTPUT_FILE_NAME),"w", encoding="utf-8", errors="replace")
 json_file.write("{\n")
 
 def print_object_to_file(object, title):
     print("\"{}\": {},".format(title,object[title]).replace('\'','\"'),file=json_file)
 
-with open("{}{}".format(DATA_DIR_NAME,DATA_FILE_NAME),"r") as file:
+with open("{}{}".format(DATA_DIR_NAME,DATA_FILE_NAME),encoding="utf-8") as file:
     parsed_object = {}
     parsed_title=""
     for line in file:
@@ -24,7 +25,7 @@ with open("{}{}".format(DATA_DIR_NAME,DATA_FILE_NAME),"r") as file:
                 parsed_title = line_title
                 parsed_object[line_title]={}
             elif line_title != parsed_title:
-                print(parsed_object)
+                #print(parsed_object)
                 print_object_to_file(parsed_object, parsed_title)
                 parsed_object={}
                 parsed_title = line_title
