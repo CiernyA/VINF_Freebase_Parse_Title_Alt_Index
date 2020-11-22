@@ -59,7 +59,7 @@ def parse_object_triplet(part):
 
 def handle_data():
     index_id = 0
-    b_generator = (x for x in stream_unzipped_bytes("{}{}".format(DATA_DIR_NAME,DATA_FILE_NAME)))
+    #b_generator = (x for x in stream_unzipped_bytes("{}{}".format(DATA_DIR_NAME,DATA_FILE_NAME)))
     parsed_object = {}
     parsed_title=""
     #for line in stream_text(b_generator):
