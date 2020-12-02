@@ -1,49 +1,19 @@
 import re
 import json
-import zlib
 from elasticsearch import Elasticsearch, helpers
 
 DATA_DIR_NAME = "data/"
 DATA_FILE_NAME = "freebase-rdf-latest"
-#DATA_FILE_NAME = "freebase-rdf-latest.gz"
 NEEDED_ATRIBUTES = "(type\.object\.name|\.display_name|type\.object\.type)"
 NOT_IMPORTANT_ATTRIBUTES = "(www\.w3\.org|dated_percentage|dated_integer|pronunciation|pagination)"
-#Further filter out: 
-ENGLISH_NAME = ""
-OUTPUT_FILE_NAME = "parsed_objects"
-
-def stream_unzipped_bytes(filename):
-    with open(filename, 'rb') as f:
-        wbits = zlib.MAX_WBITS | 16
-        to_decompress = zlib.decompressobj(wbits)
-        fbytes = f.read(16384)
-        while fbytes:
-            yield to_decompress.decompress(to_decompress.unconsumed_tail + fbytes)
-            fbytes = f.read(16384)
-
-def stream_text(gen):
-    try:
-        buffer = next(gen)
-        while buffer:
-            lines = buffer.splitlines(keepends=True)
-            for line in lines[:-1]:
-                yield line.decode() #encoding='UTF-8'
-            buffer = lines[-1]
-            buffer += next(gen)
-            if(len(buffer) < 500):
-                print(f"{len(buffer)} - content of buffer: {buffer}")
-    except StopIteration:
-        print("I got here")
-        if buffer:
-            yield buffer.decode() #encoding='UTF-8'
+OUTPUT_FILE_NAME = "vinf_cierny_parsed_objects"
+INDEX_NAME = "vinf_cierny_freebase_2020"
 
 
-json_file = open("{}{}".format(DATA_DIR_NAME, OUTPUT_FILE_NAME),"w", encoding="utf-8") #, errors="replace"
+json_file = open("{}{}".format(DATA_DIR_NAME, OUTPUT_FILE_NAME),"w", encoding="utf-8")
 json_file.write("[\n")
 
 indexer = Elasticsearch()
-
-#indexer.indices.delete(index="vinf_index")
 
 def print_object_to_file(object):
     print("{},".format(json.dumps(object, sort_keys=True)),file=json_file)
@@ -59,10 +29,8 @@ def parse_object_triplet(part):
 
 def handle_data():
     index_id = 0
-    #b_generator = (x for x in stream_unzipped_bytes("{}{}".format(DATA_DIR_NAME,DATA_FILE_NAME)))
     parsed_object = {}
     parsed_title=""
-    #for line in stream_text(b_generator):
     with open("{}{}".format(DATA_DIR_NAME, DATA_FILE_NAME),'r', encoding='UTF-8') as file:
         for line in file:
             if (re.search(NOT_IMPORTANT_ATTRIBUTES, line)):
@@ -79,7 +47,7 @@ def handle_data():
                 elif line_title != parsed_title:
                     print_object_to_file(parsed_object)
                     yield {
-                        "_index": "vinf_index",
+                        "_index": INDEX_NAME,
                         "_id": index_id,
                         "_source": parsed_object
                     }
